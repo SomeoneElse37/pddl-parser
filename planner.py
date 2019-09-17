@@ -15,20 +15,24 @@ class Planner:
         parser.parse_domain(domain)
         parser.parse_problem(problem)
         # Parsed data
-        actions = parser.actions
         state = parser.state
         goal_pos = parser.positive_goals
         goal_not = parser.negative_goals
         # Do nothing
         if self.applicable(state, goal_pos, goal_not):
             return []
+        # Grounding process
+        ground_actions = []
+        for action in parser.actions:
+            for act in action.groundify(parser.objects):
+                ground_actions.append(act)
         # Search
         visited = [state]
         fringe = [state, None]
         while fringe:
             state = fringe.pop(0)
             plan = fringe.pop(0)
-            for act in actions:
+            for act in ground_actions:
                 if self.applicable(state, act.positive_preconditions, act.negative_preconditions):
                     new_state = self.apply(state, act.add_effects, act.del_effects)
                     if new_state not in visited:
@@ -74,11 +78,13 @@ class Planner:
 # Main
 # ==========================================
 if __name__ == '__main__':
-    import sys
+    import sys, time
+    start_time = time.time()
     domain = sys.argv[1]
     problem = sys.argv[2]
     planner = Planner()
     plan = planner.solve(domain, problem)
+    print('Time: ' + str(time.time() - start_time) + 's')
     if plan:
         print('plan:')
         for act in plan:
