@@ -1,5 +1,11 @@
 (define (problem pb1)
 
+  (:domain robot)
+
+  (:objects rooma roomb
+            ball1 ball2 ball3 ball4
+            left right)
+
   (:init (ROOM rooma) (ROOM roomb)
          (BALL ball1) (BALL ball2) (BALL ball3) (BALL ball4)
          (GRIPPER left) (GRIPPER right) (free left) (free right)
@@ -10,5 +16,4 @@
   (:goal (and (at-ball ball1 roomb)
               (at-ball ball2 roomb)
               (at-ball ball3 roomb)
-              (at-ball ball4 roomb)))
-  )
+              (at-ball ball4 roomb))))
