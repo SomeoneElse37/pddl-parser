@@ -3,6 +3,7 @@
 from PDDL import PDDL_Parser
 from planner import Planner
 from action import Action
+import datetime
 # from pynput import keyboard
 
 # def on_press(key):
@@ -35,7 +36,7 @@ from action import Action
 
 class Engine:
 
-    def __init__(self, domain, problem):
+    def __init__(self, domain, problem, logfile='/dev/null'):
         # Parser
         self.parser = PDDL_Parser()
         self.parser.parse_domain(domain)
@@ -45,19 +46,12 @@ class Engine:
         self.goal_pos = self.parser.positive_goals
         self.goal_not = self.parser.negative_goals
 
-        # Find player starting position
-        # self.playerPos = self.findPlayer()
+        self.logfile = logfile
 
         self.planner = Planner()
         # Do nothing
         if self.planner.applicable(self.state, self.parser.positive_goals, self.parser.negative_goals):
             print('Puzzle is already solved! Double-check your problem file!')
-            return
-        # Grounding process
-        # self.ground_actions = []
-        # for action in parser.actions:
-        #     for act in action.groundify(parser.objects):
-        #         ground_actions.append(act)
 
     def parseCellName(self, cellName):
         x, y = cellName[4:].split('_')
@@ -93,15 +87,16 @@ class Engine:
         return (x, y)
 
     # act must already be grounded (e.g. by self.groundAction)
-    def tryAction(self, act):
+    def tryAction(self, act, log):
         # print(self.state)
         # print(act.positive_preconditions)
         # print(act.negative_preconditions)
         # print(self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions))
         if self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions):
-            # print(self.state)
+            log.write(str(self.state) + '\n')
+            log.write(str(act))
             self.state = self.planner.apply(self.state, act.add_effects, act.del_effects)
-            # print(self.state)
+            log.write(str(self.state) + '\n\n')
             return True
         else:
             return False
@@ -112,7 +107,7 @@ class Engine:
                 return act
         return None
 
-    def doMove(self, key):
+    def doMove(self, key, log):
         delta = None
         actions = []
         if key == 'w':
@@ -138,13 +133,13 @@ class Engine:
         act = self.lookupAction(actions[0])
         gact = self.groundAction(act, [playerCell, nextCell])
         # print(gact)
-        if self.tryAction(gact):
+        if self.tryAction(gact, log):
             return True
         else:
             act = self.lookupAction(actions[1])
             gact = self.groundAction(act, [playerCell, nextCell, afterCell])
             # print(gact)
-            if self.tryAction(gact):
+            if self.tryAction(gact, log):
                 return True
         return False
 
@@ -184,13 +179,15 @@ class Engine:
 
 
     def gameloop(self):
-        while True:
-            self.render()
-            if self.planner.applicable(self.state, self.parser.positive_goals, self.parser.negative_goals):
-                print('Winningness!')
-                return
-            key = input('Choose direction (wasd, followed by Enter): ')
-            self.doMove(key)
+        with open(self.logfile, 'w') as log:
+            log.write('{}\n'.format(datetime.datetime.now()))
+            while True:
+                self.render()
+                if self.planner.applicable(self.state, self.parser.positive_goals, self.parser.negative_goals):
+                    print('Winningness!')
+                    return
+                key = input('Choose direction (wasd, followed by Enter): ')
+                self.doMove(key, log)
 
 
 # ==========================================
@@ -201,7 +198,11 @@ if __name__ == '__main__':
     start_time = time.time()
     domain = sys.argv[1]
     problem = sys.argv[2]
-    engine = Engine(domain, problem)
+    try:
+        logfile = sys.argv[3]
+    except IndexError:
+        logfile = '/dev/null'
+    engine = Engine(domain, problem, logfile)
     engine.gameloop()
     print('Time: ' + str(time.time() - start_time) + 's')
     # if plan:
