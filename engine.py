@@ -3,6 +3,7 @@
 from PDDL import PDDL_Parser
 from planner import Planner
 from action import Action
+
 import datetime
 # from pynput import keyboard
 
@@ -45,6 +46,9 @@ class Engine:
         self.state = self.parser.state
         self.goal_pos = self.parser.positive_goals
         self.goal_not = self.parser.negative_goals
+
+        self.history = []
+        self.movelog = []
 
         self.logfile = logfile
 
@@ -95,9 +99,11 @@ class Engine:
         if self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions):
             # log.write(str(self.state) + '\n')
             # log.write(str(act))
-            log.write('(:action ({}))\n\n'.format(' '.join([act.name, *act.parameters])))
+            act_str = '(:action ({}))'.format(' '.join([act.name, *act.parameters]))
+            self.history.append(self.state)
             self.state = self.planner.apply(self.state, act.add_effects, act.del_effects)
-            log.write(self.lispState() + '\n\n')
+            # log.write(self.lispState() + '\n\n')
+            self.movelog.append('{}\n\n{}\n\n'.format(act_str, self.lispState()))
             return True
         else:
             return False
@@ -123,8 +129,19 @@ class Engine:
         elif key == 'd':
             delta = ( 1, 0)
             actions = ['moveeast', 'pusheast']
+        elif key == 'u':
+            if len(self.history) >= 1:
+                self.state = self.history.pop()
+                self.movelog.pop()
+            return True
+        elif key == 'r':
+            self.state = self.parser.state
+            # self.history.append(self.state)
+            self.history = [self.state]
+            self.movelog = []
+            return True
         else:
-            log.write('Unparseable input: {}\n\n'.format(key))
+            # log.write('Unparseable input: {}\n\n'.format(key))
             return False
         # print(key, delta, actions)
         playerPos = self.findPlayer()
@@ -143,7 +160,7 @@ class Engine:
             # print(gact)
             if self.tryAction(gact, log):
                 return True
-        log.write('Blocked move: {}\n\n'.format(actions))
+        # log.write('Blocked move: {}\n\n'.format(actions))
         return False
 
     tiles = {-1: '[]',  # Wall
@@ -205,10 +222,11 @@ class Engine:
                 self.render()
                 if self.planner.applicable(self.state, self.goal_pos, self.goal_not):
                     print('Winningness!')
+                    log.write(''.join(self.movelog))
                     log.write(')')
                     return
                 prevTime = time.time()
-                key = input('Choose direction (wasd, followed by Enter): ')
+                key = input('Choose direction (wasdur, followed by Enter): ')
                 # log.write('{}\n\n'.format(time.time() - prevTime))
                 self.doMove(key, log)
 
