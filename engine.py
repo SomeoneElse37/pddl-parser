@@ -50,7 +50,7 @@ class Engine:
 
         self.planner = Planner()
         # Do nothing
-        if self.planner.applicable(self.state, self.parser.positive_goals, self.parser.negative_goals):
+        if self.planner.applicable(self.state, self.goal_pos, self.goal_not):
             print('Puzzle is already solved! Double-check your problem file!')
 
     def parseCellName(self, cellName):
@@ -93,10 +93,11 @@ class Engine:
         # print(act.negative_preconditions)
         # print(self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions))
         if self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions):
-            log.write(str(self.state) + '\n')
-            log.write(str(act))
+            # log.write(str(self.state) + '\n')
+            # log.write(str(act))
+            log.write('(:action ({}))\n\n'.format(' '.join([act.name, *act.parameters])))
             self.state = self.planner.apply(self.state, act.add_effects, act.del_effects)
-            log.write(str(self.state) + '\n\n')
+            log.write(self.lispState() + '\n\n')
             return True
         else:
             return False
@@ -172,25 +173,43 @@ class Engine:
                         code = 1
                     if self.planner.applicable(self.state, [['ball', cell]], []):
                         code += 2
-                    if self.planner.applicable(self.parser.positive_goals, [['ball', cell]], []):
+                    if self.planner.applicable(self.goal_pos, [['ball', cell]], []):
                         code += 4
                     if self.planner.applicable(self.state, [['player', cell]], []):
                         code += 8
                 print(self.tiles[code], end='')
             print()
 
+    def lispState(self, word=':state'):
+        out = []
+        out.append('({}'.format(word))
+        for pred in self.state:
+            out.append(' (')
+            out.append(' '.join(pred))
+            out.append(')')
+        out.append(')')
+        return ''.join(out)
 
     def gameloop(self):
         with open(self.logfile, 'w') as log:
-            log.write('{}\n\n'.format(datetime.datetime.now()))
+            # log.write('{}\n\n'.format(datetime.datetime.now()))
+            log.write('(trajectory\n\n')
+            log.write('(:objects ')
+            for t, os in self.parser.objects.items():
+                for o in os:
+                    log.write('{} -  {} '.format(o, t))
+            log.write(')\n\n')
+            log.write(self.lispState(':init'))
+            log.write('\n\n')
             while True:
                 self.render()
-                if self.planner.applicable(self.state, self.parser.positive_goals, self.parser.negative_goals):
+                if self.planner.applicable(self.state, self.goal_pos, self.goal_not):
                     print('Winningness!')
+                    log.write(')')
                     return
                 prevTime = time.time()
                 key = input('Choose direction (wasd, followed by Enter): ')
-                log.write('{}\n\n'.format(time.time() - prevTime))
+                # log.write('{}\n\n'.format(time.time() - prevTime))
                 self.doMove(key, log)
 
 
