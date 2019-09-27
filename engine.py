@@ -123,6 +123,7 @@ class Engine:
             delta = ( 1, 0)
             actions = ['moveeast', 'pusheast']
         else:
+            log.write('Unparseable input: {}\n\n'.format(key))
             return False
         # print(key, delta, actions)
         playerPos = self.findPlayer()
@@ -141,6 +142,7 @@ class Engine:
             # print(gact)
             if self.tryAction(gact, log):
                 return True
+        log.write('Blocked move: {}\n\n'.format(actions))
         return False
 
     tiles = {-1: '[]',  # Wall
@@ -180,13 +182,15 @@ class Engine:
 
     def gameloop(self):
         with open(self.logfile, 'w') as log:
-            log.write('{}\n'.format(datetime.datetime.now()))
+            log.write('{}\n\n'.format(datetime.datetime.now()))
             while True:
                 self.render()
                 if self.planner.applicable(self.state, self.parser.positive_goals, self.parser.negative_goals):
                     print('Winningness!')
                     return
+                prevTime = time.time()
                 key = input('Choose direction (wasd, followed by Enter): ')
+                log.write('{}\n\n'.format(time.time() - prevTime))
                 self.doMove(key, log)
 
 
