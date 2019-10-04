@@ -243,7 +243,7 @@ class Engine:
                     log.write(')')
                     return
                 prevTime = time.time()
-                key = input('Choose direction (wasdur, followed by Enter): ')
+                key = input('Choose direction ({}ur, followed by Enter): '.format(''.join(self.parser.objects['dir'])))
                 # log.write('{}\n\n'.format(time.time() - prevTime))
                 self.doMove(key, log)
 
