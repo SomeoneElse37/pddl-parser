@@ -1,0 +1,35 @@
+(define (problem level3)
+(:domain soko2)
+(:objects cell0_0 cell1_0 cell2_0 cell3_0 cell4_0 cell5_0 cell6_0 cell7_0 cell8_0 
+cell0_1 cell1_1 cell2_1 cell3_1 cell4_1 cell5_1 cell6_1 cell7_1 cell8_1 
+cell0_2 cell1_2 cell2_2 cell3_2 cell4_2 cell5_2 cell6_2 cell7_2 cell8_2 
+cell0_3 cell1_3 cell2_3 cell3_3 cell4_3 cell5_3 cell6_3 cell7_3 cell8_3 
+cell0_4 cell1_4 cell2_4 cell3_4 cell4_4 cell5_4 cell6_4 cell7_4 cell8_4 
+- cell
+w a s d  - dir)
+(:init (wall cell0_0) (wall cell1_0) (wall cell2_0) (wall cell3_0) (wall cell4_0) (wall cell5_0) (wall cell6_0) (wall cell7_0) (wall cell8_0) 
+(wall cell0_1) (player cell1_1) (pit cell5_1) (pit cell6_1) (wall cell8_1) 
+(wall cell0_2) (ball cell2_2) (ball cell4_2) (pit cell6_2) (wall cell8_2) 
+(wall cell0_3) (ball cell3_3) (pit cell6_3) (wall cell8_3) 
+(wall cell0_4) (wall cell1_4) (wall cell2_4) (wall cell3_4) (wall cell4_4) (wall cell5_4) (wall cell6_4) (wall cell7_4) (wall cell8_4) 
+(in-dir w cell0_1 cell0_0) (in-dir w cell1_1 cell1_0) (in-dir w cell2_1 cell2_0) (in-dir w cell3_1 cell3_0) (in-dir w cell4_1 cell4_0) (in-dir w cell5_1 cell5_0) (in-dir w cell6_1 cell6_0) (in-dir w cell7_1 cell7_0) (in-dir w cell8_1 cell8_0) 
+(in-dir w cell0_2 cell0_1) (in-dir w cell1_2 cell1_1) (in-dir w cell2_2 cell2_1) (in-dir w cell3_2 cell3_1) (in-dir w cell4_2 cell4_1) (in-dir w cell5_2 cell5_1) (in-dir w cell6_2 cell6_1) (in-dir w cell7_2 cell7_1) (in-dir w cell8_2 cell8_1) 
+(in-dir w cell0_3 cell0_2) (in-dir w cell1_3 cell1_2) (in-dir w cell2_3 cell2_2) (in-dir w cell3_3 cell3_2) (in-dir w cell4_3 cell4_2) (in-dir w cell5_3 cell5_2) (in-dir w cell6_3 cell6_2) (in-dir w cell7_3 cell7_2) (in-dir w cell8_3 cell8_2) 
+(in-dir w cell0_4 cell0_3) (in-dir w cell1_4 cell1_3) (in-dir w cell2_4 cell2_3) (in-dir w cell3_4 cell3_3) (in-dir w cell4_4 cell4_3) (in-dir w cell5_4 cell5_3) (in-dir w cell6_4 cell6_3) (in-dir w cell7_4 cell7_3) (in-dir w cell8_4 cell8_3) 
+(in-dir a cell1_0 cell0_0) (in-dir a cell2_0 cell1_0) (in-dir a cell3_0 cell2_0) (in-dir a cell4_0 cell3_0) (in-dir a cell5_0 cell4_0) (in-dir a cell6_0 cell5_0) (in-dir a cell7_0 cell6_0) (in-dir a cell8_0 cell7_0) 
+(in-dir a cell1_1 cell0_1) (in-dir a cell2_1 cell1_1) (in-dir a cell3_1 cell2_1) (in-dir a cell4_1 cell3_1) (in-dir a cell5_1 cell4_1) (in-dir a cell6_1 cell5_1) (in-dir a cell7_1 cell6_1) (in-dir a cell8_1 cell7_1) 
+(in-dir a cell1_2 cell0_2) (in-dir a cell2_2 cell1_2) (in-dir a cell3_2 cell2_2) (in-dir a cell4_2 cell3_2) (in-dir a cell5_2 cell4_2) (in-dir a cell6_2 cell5_2) (in-dir a cell7_2 cell6_2) (in-dir a cell8_2 cell7_2) 
+(in-dir a cell1_3 cell0_3) (in-dir a cell2_3 cell1_3) (in-dir a cell3_3 cell2_3) (in-dir a cell4_3 cell3_3) (in-dir a cell5_3 cell4_3) (in-dir a cell6_3 cell5_3) (in-dir a cell7_3 cell6_3) (in-dir a cell8_3 cell7_3) 
+(in-dir a cell1_4 cell0_4) (in-dir a cell2_4 cell1_4) (in-dir a cell3_4 cell2_4) (in-dir a cell4_4 cell3_4) (in-dir a cell5_4 cell4_4) (in-dir a cell6_4 cell5_4) (in-dir a cell7_4 cell6_4) (in-dir a cell8_4 cell7_4) 
+(in-dir s cell0_0 cell0_1) (in-dir s cell1_0 cell1_1) (in-dir s cell2_0 cell2_1) (in-dir s cell3_0 cell3_1) (in-dir s cell4_0 cell4_1) (in-dir s cell5_0 cell5_1) (in-dir s cell6_0 cell6_1) (in-dir s cell7_0 cell7_1) (in-dir s cell8_0 cell8_1) 
+(in-dir s cell0_1 cell0_2) (in-dir s cell1_1 cell1_2) (in-dir s cell2_1 cell2_2) (in-dir s cell3_1 cell3_2) (in-dir s cell4_1 cell4_2) (in-dir s cell5_1 cell5_2) (in-dir s cell6_1 cell6_2) (in-dir s cell7_1 cell7_2) (in-dir s cell8_1 cell8_2) 
+(in-dir s cell0_2 cell0_3) (in-dir s cell1_2 cell1_3) (in-dir s cell2_2 cell2_3) (in-dir s cell3_2 cell3_3) (in-dir s cell4_2 cell4_3) (in-dir s cell5_2 cell5_3) (in-dir s cell6_2 cell6_3) (in-dir s cell7_2 cell7_3) (in-dir s cell8_2 cell8_3) 
+(in-dir s cell0_3 cell0_4) (in-dir s cell1_3 cell1_4) (in-dir s cell2_3 cell2_4) (in-dir s cell3_3 cell3_4) (in-dir s cell4_3 cell4_4) (in-dir s cell5_3 cell5_4) (in-dir s cell6_3 cell6_4) (in-dir s cell7_3 cell7_4) (in-dir s cell8_3 cell8_4) 
+(in-dir d cell0_0 cell1_0) (in-dir d cell1_0 cell2_0) (in-dir d cell2_0 cell3_0) (in-dir d cell3_0 cell4_0) (in-dir d cell4_0 cell5_0) (in-dir d cell5_0 cell6_0) (in-dir d cell6_0 cell7_0) (in-dir d cell7_0 cell8_0) 
+(in-dir d cell0_1 cell1_1) (in-dir d cell1_1 cell2_1) (in-dir d cell2_1 cell3_1) (in-dir d cell3_1 cell4_1) (in-dir d cell4_1 cell5_1) (in-dir d cell5_1 cell6_1) (in-dir d cell6_1 cell7_1) (in-dir d cell7_1 cell8_1) 
+(in-dir d cell0_2 cell1_2) (in-dir d cell1_2 cell2_2) (in-dir d cell2_2 cell3_2) (in-dir d cell3_2 cell4_2) (in-dir d cell4_2 cell5_2) (in-dir d cell5_2 cell6_2) (in-dir d cell6_2 cell7_2) (in-dir d cell7_2 cell8_2) 
+(in-dir d cell0_3 cell1_3) (in-dir d cell1_3 cell2_3) (in-dir d cell2_3 cell3_3) (in-dir d cell3_3 cell4_3) (in-dir d cell4_3 cell5_3) (in-dir d cell5_3 cell6_3) (in-dir d cell6_3 cell7_3) (in-dir d cell7_3 cell8_3) 
+(in-dir d cell0_4 cell1_4) (in-dir d cell1_4 cell2_4) (in-dir d cell2_4 cell3_4) (in-dir d cell3_4 cell4_4) (in-dir d cell4_4 cell5_4) (in-dir d cell5_4 cell6_4) (in-dir d cell6_4 cell7_4) (in-dir d cell7_4 cell8_4) 
+)
+(:goal (and (ball cell7_1 )
+)))
