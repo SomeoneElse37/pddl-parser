@@ -1,0 +1,59 @@
+(trajectory
+
+(:objects cell0_0 -  cell cell1_0 -  cell cell0_1 -  cell cell1_1 -  cell cell0_2 -  cell cell1_2 -  cell cell0_3 -  cell cell1_3 -  cell w -  dir a -  dir s -  dir d -  dir )
+
+(:init (player cell0_0) (ball cell0_1) (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3))
+
+(:action (push s cell0_0 cell0_1 cell0_2))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (player cell0_1) (ball cell0_2))
+
+(:action (move d cell0_1 cell1_1))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_2) (player cell1_1))
+
+(:action (move s cell1_1 cell1_2))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_2) (player cell1_2))
+
+(:action (move s cell1_2 cell1_3))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_2) (player cell1_3))
+
+(:action (move a cell1_3 cell0_3))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_2) (player cell0_3))
+
+(:action (push w cell0_3 cell0_2 cell0_1))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (player cell0_2) (ball cell0_1))
+
+(:action (move d cell0_2 cell1_2))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_1) (player cell1_2))
+
+(:action (move w cell1_2 cell1_1))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_1) (player cell1_1))
+
+(:action (move s cell1_1 cell1_2))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_1) (player cell1_2))
+
+(:action (move a cell1_2 cell0_2))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_1) (player cell0_2))
+
+(:action (move s cell0_2 cell0_3))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_1) (player cell0_3))
+
+(:action (move w cell0_3 cell0_2))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (ball cell0_1) (player cell0_2))
+
+(:action (push w cell0_2 cell0_1 cell0_0))
+
+(:state (wall cell1_0) (in-dir s cell0_0 cell0_1) (in-dir s cell0_1 cell0_2) (in-dir s cell0_2 cell0_3) (in-dir s cell1_0 cell1_1) (in-dir s cell1_1 cell1_2) (in-dir s cell1_2 cell1_3) (in-dir w cell0_1 cell0_0) (in-dir w cell0_2 cell0_1) (in-dir w cell0_3 cell0_2) (in-dir w cell1_1 cell1_0) (in-dir w cell1_2 cell1_1) (in-dir w cell1_3 cell1_2) (in-dir d cell0_0 cell1_0) (in-dir d cell0_1 cell1_1) (in-dir d cell0_2 cell1_2) (in-dir d cell0_3 cell1_3) (in-dir a cell1_0 cell0_0) (in-dir a cell1_1 cell0_1) (in-dir a cell1_2 cell0_2) (in-dir a cell1_3 cell0_3) (player cell0_1) (ball cell0_0))
+
+)

@@ -1,0 +1,11 @@
+(trajectory
+
+(:objects cell0_0 -  object cell0_1 -  object cell0_2 -  object )
+
+(:init (floor cell0_0) (floor cell0_1) (ball cell0_1) (floor cell0_2) (player cell0_2) (north cell0_0 cell0_1) (north cell0_1 cell0_2))
+
+(:action (pushnorth cell0_2 cell0_1 cell0_0))
+
+(:state (floor cell0_0) (floor cell0_1) (floor cell0_2) (north cell0_0 cell0_1) (north cell0_1 cell0_2) (player cell0_1) (ball cell0_0))
+
+)
