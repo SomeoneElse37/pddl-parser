@@ -24,7 +24,7 @@ class trajectory:
     # Parses the :init and :state blocks in the trajectory file, and also makes a dictionary of all the predicates that appear in the states, along with the types of their peremeters
     def parseStates(self, tokens):
         self.states = []
-        self.predicates = {}    #TODO implement type inheritance
+        self.predicates = {}
         for block in tokens:
             if block[0] == ':state' or block[0] == ':init':
                 self.states.append(block[1:])
@@ -32,10 +32,13 @@ class trajectory:
                     pName = pred[0]
                     pTypes = []
                     for arg in pred[1:]:
-                        pTypes.append(self.objs2types[arg])
+                        pTypes.append([self.objs2types[arg]])   # Predicate type lists are now lists of lists of strings- each inner list representing the types observed for one parameter
                     if pName in self.predicates:
-                        if self.predicates[pName] != pTypes:
-                            raise TypeError('Predicate {} believed to have parameter types {}; inconsistent with observed parameters {}'.format(pName, self.predicates[pName], pTypes))
+                        for oldParamTypes, newType in zip(self.predicates[pName], pTypes):
+                            if newType[0] not in oldParamTypes:
+                                oldParamTypes.append(newType[0])
+                        # if self.predicates[pName] != pTypes:
+                            # raise TypeError('Predicate {} believed to have parameter types {}; inconsistent with observed parameters {}'.format(pName, self.predicates[pName], pTypes))
                     else:
                         self.predicates[pName] = pTypes
 
@@ -44,28 +47,34 @@ class trajectory:
         for block in tokens:
             if block[0] == ':action':
                 act_in = block[1]
-                # print('Parsing action {}'.format(act_in))
+                print('Parsing action {}'.format(act_in))
                 parTypes = []
                 for param in act_in[1:]:
-                    parTypes.append(self.objs2types[param])
-                duplicate = False
-                for act in self.actions.values():
-                    # print('Comparing current action name {} to previous action name {}'.format(act_in[0], act.name))
-                    if act.name == act_in[0]:
-                        # print ('Found action with same name: {}'.format(act.name))
-                        duplicate = True
-                        if act.parameterTypes != parTypes:
-                            raise TypeError('Action {} found using parameters {}; inconsistent with earlier {}. Are you using type inheritance?'.format(act_in[0], parTypes, act.parameterTypes))
-                if not duplicate:
+                    parTypes.append(self.objs2types[param]) # Not doing list-of-lists here- that'll be handled in actionCandidate constructor
+                if act_in[0] in self.actions:
+                    print ('Found action with same name: {}'.format(act_in[0]))
+                    for oldTypes, newType in zip(self.actions[act_in[0]].parameterTypes, parTypes):
+                        if newType not in oldTypes:
+                            oldTypes.append(newType)
+                    self.actions[act_in[0]].updateParameterTypes(parTypes)
+                    # if act.parameterTypes != parTypes:
+                    #     raise TypeError('Action {} found using parameters {}; inconsistent with earlier {}. Are you using type inheritance?'.format(act_in[0], parTypes, act.parameterTypes))
+                else:
                     newAct = actionCandidate(act_in[0], parTypes, self)
                     self.actions[newAct.name] = newAct
 
     def refineActions(self, tokens):
         assignments = [block[1] for block in tokens if block[0] == ':action']
         # pprint.pprint(assignments)
+        for agmt in assignments:
+            assignedTypes = [self.objs2types[par] for par in agmt[1:]]
+            self.actions[agmt[0]].updateParameterTypes(assignedTypes)
+        for act in self.actions.values():
+            act.createPrecons(self)
         for i, agmt in enumerate(assignments):
             act = self.actions[agmt[0]]
             assignment = agmt[1:]
+            assignedTypes = [self.objs2types[par] for par in assignment]
             act.prunePrecons(self.states[i], assignment)
             act.updateEffects(self.states[i], assignment, self.states[i + 1])
 
@@ -115,31 +124,68 @@ def explode(params):
                 # print('From recursive branch: Yielding {}'.format(toYield))
                 yield toYield
 
+# Flatten a list of lists into a single set, removing duplicate entries in the process
+def flattenNoRepeats(ll):
+    out = set()
+    for l in ll:
+        out.update(l)
+    return out
+
 class actionCandidate:
     def __init__(self, name, parTypes, trajectory):
         self.name = name
-        self.parameterTypes = parTypes
+        self.parameterTypes = []
         self.parNames = []
-        self.types2pars = {}
-        for pType in parTypes:
+        self.types2pars = {}    # Map from types to the names of the action parameters names that could be that type
+        for i, pType in enumerate(parTypes):
+            self.parameterTypes.append([pType]) # Other observed types will be added later, during successive iterations of trajectory.parseActions
+            parName = '{}{}'.format(i, pType)   # Parameter name format is <parameter index><type of first object observed being passed to this parameter>
             if pType not in self.types2pars:
                 self.types2pars[pType] = []
-            parName = '{}{}'.format(pType, len(self.types2pars[pType]) + 1)
             self.types2pars[pType].append(parName)
             self.parNames.append(parName)
         self.positivePreconditions = []
         self.negativePreconditions = []
-        for predName, predTypes in trajectory.predicates.items():
-            toExplode = [self.types2pars[predType] for predType in predTypes]
-            exploded = explode(toExplode)
-            for ordering in exploded:
-                precon = [predName]
-                precon.extend(ordering)
-                self.positivePreconditions.append(precon)
-                self.negativePreconditions.append(precon)
         self.positiveEffects = []
         self.negativeEffects = []
-        # print(self)
+        print(self)
+
+    def updateParameterTypes(self, parTypes):
+        for parName, oldTypes, newType in zip(self.parNames, self.parameterTypes, parTypes):
+            if newType not in oldTypes:
+                oldTypes.append(newType)
+            if parName not in self.types2pars[newType]:
+                self.types2pars[newType].append(parName)
+
+    def createPrecons(self, trajectory):
+        print('{} types2pars:'.format(self.name))
+        pprint.pprint(self.types2pars)
+        for predName, predTypes in trajectory.predicates.items():
+            print(' Predicate: {} {}'.format(predName, predTypes))
+            for typeOrdering in explode(predTypes):
+                print('  Type ordering: {}'.format(typeOrdering))
+                toExplode = []
+                canExplode = True
+                for predType in typeOrdering:
+                    print('   Predicate parameter type: {}'.format(predType))
+                    if predType in self.types2pars:
+                        print('    Keeping {}'.format(predType))
+                        toExplode.append(self.types2pars[predType])
+                    else:
+                        canExplode = False
+                        print('    Dropping {}'.format(predType))
+                if canExplode:
+                    print('  Will now explode {}'.format(toExplode))
+                    # toExplode = [self.types2pars[predType] for predType in predTypes]
+                    exploded = explode(toExplode)
+                    # print('Recieved {}'.format(list(exploded)))
+                    for ordering in exploded:
+                        print('   From explosion: {}'.format(ordering))
+                        precon = [predName]
+                        precon.extend(ordering)
+                        self.positivePreconditions.append(precon)
+                    self.negativePreconditions.append(precon)
+
 
     def assignPrecons(self, assignment):
         assignMap = dict(zip(self.parNames, assignment))
