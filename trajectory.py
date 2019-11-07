@@ -47,12 +47,12 @@ class trajectory:
         for block in tokens:
             if block[0] == ':action':
                 act_in = block[1]
-                print('Parsing action {}'.format(act_in))
+                # print('Parsing action {}'.format(act_in))
                 parTypes = []
                 for param in act_in[1:]:
                     parTypes.append(self.objs2types[param]) # Not doing list-of-lists here- that'll be handled in actionCandidate constructor
                 if act_in[0] in self.actions:
-                    print ('Found action with same name: {}'.format(act_in[0]))
+                    # print ('Found action with same name: {}'.format(act_in[0]))
                     for oldTypes, newType in zip(self.actions[act_in[0]].parameterTypes, parTypes):
                         if newType not in oldTypes:
                             oldTypes.append(newType)
@@ -71,12 +71,23 @@ class trajectory:
             self.actions[agmt[0]].updateParameterTypes(assignedTypes)
         for act in self.actions.values():
             act.createPrecons(self)
+        needsDoubleChecking = False
         for i, agmt in enumerate(assignments):
             act = self.actions[agmt[0]]
             assignment = agmt[1:]
-            assignedTypes = [self.objs2types[par] for par in assignment]
+            # assignedTypes = [self.objs2types[par] for par in assignment]
             act.prunePrecons(self.states[i], assignment)
-            act.updateEffects(self.states[i], assignment, self.states[i + 1])
+            needsDoubleChecking |= act.updateEffects(self.states[i], assignment, self.states[i + 1])
+        if needsDoubleChecking:
+            print('Double-checking action effects\n')
+            needsDoubleChecking = False
+            for i, agmt in enumerate(assignments):
+                act = self.actions[agmt[0]]
+                assignment = agmt[1:]
+                # assignedTypes = [self.objs2types[par] for par in assignment]
+                needsDoubleChecking |= act.updateEffects(self.states[i], assignment, self.states[i + 1])
+            if needsDoubleChecking:
+                raise ValueError('Some actions still had unexpected effects during the second pass. If you see this message, please let me know. --SE')
 
 
     def __init__(self, filename):
@@ -146,9 +157,9 @@ class actionCandidate:
             self.parNames.append(parName)
         self.positivePreconditions = []
         self.negativePreconditions = []
-        self.positiveEffects = []
-        self.negativeEffects = []
-        print(self)
+        self.positiveEffects = set()
+        self.negativeEffects = set()
+        # print(self)
 
     def updateParameterTypes(self, parTypes):
         for parName, oldTypes, newType in zip(self.parNames, self.parameterTypes, parTypes):
@@ -158,29 +169,29 @@ class actionCandidate:
                 self.types2pars[newType].append(parName)
 
     def createPrecons(self, trajectory):
-        print('{} types2pars:'.format(self.name))
-        pprint.pprint(self.types2pars)
+        # print('{} types2pars:'.format(self.name))
+        # pprint.pprint(self.types2pars)
         for predName, predTypes in trajectory.predicates.items():
-            print(' Predicate: {} {}'.format(predName, predTypes))
+            # print(' Predicate: {} {}'.format(predName, predTypes))
             for typeOrdering in explode(predTypes):
-                print('  Type ordering: {}'.format(typeOrdering))
+                # print('  Type ordering: {}'.format(typeOrdering))
                 toExplode = []
                 canExplode = True
                 for predType in typeOrdering:
-                    print('   Predicate parameter type: {}'.format(predType))
+                    # print('   Predicate parameter type: {}'.format(predType))
                     if predType in self.types2pars:
-                        print('    Keeping {}'.format(predType))
+                        # print('    Keeping {}'.format(predType))
                         toExplode.append(self.types2pars[predType])
                     else:
                         canExplode = False
-                        print('    Dropping {}'.format(predType))
+                        # print('    Dropping {}'.format(predType))
                 if canExplode:
-                    print('  Will now explode {}'.format(toExplode))
+                    # print('  Will now explode {}'.format(toExplode))
                     # toExplode = [self.types2pars[predType] for predType in predTypes]
                     exploded = explode(toExplode)
                     # print('Recieved {}'.format(list(exploded)))
                     for ordering in exploded:
-                        print('   From explosion: {}'.format(ordering))
+                        # print('   From explosion: {}'.format(ordering))
                         precon = [predName]
                         precon.extend(ordering)
                         self.positivePreconditions.append(precon)
@@ -226,9 +237,9 @@ class actionCandidate:
         # Compute differences between before and after
         pos = [pred for pred in after if pred not in before]
         neg = [pred for pred in before if pred not in after]
-        # print('Updating effects of {} {}'.format(self.name, assignment))
-        # print('Added predicates: {}'.format(pos))
-        # print('Removed predicates: {}'.format(neg))
+        print('Updating effects of {} {}'.format(self.name, assignment))
+        print('Added predicates: {}'.format(pos))
+        print('Removed predicates: {}'.format(neg))
         # Check that the parameters of the predicates in the difference are a subset of the objects in assignment
         for pred in pos + neg:
             for param in pred[1:]:
@@ -237,31 +248,79 @@ class actionCandidate:
                         self.name, pred, assignment))
         # Map predicate parameters to parNames
         assignMap = dict(zip(assignment, self.parNames))
-        new_pos = []
-        new_neg = []
-        # print('Assignment map: {}'.format(assignMap))
+        reverseMap = dict(zip(self.parNames, assignment))
+        new_pos = set()
+        new_neg = set()
+        print('Assignment map: {}'.format(assignMap))
         for pred in pos:
             new_pred = [pred[0]]
             new_pred.extend([assignMap[param] for param in pred[1:]])
-            new_pos.append(new_pred)
+            new_pos.add(tuple(new_pred))
         for pred in neg:
             new_pred = [pred[0]]
             new_pred.extend([assignMap[param] for param in pred[1:]])
-            new_neg.append(new_pred)
+            new_neg.add(tuple(new_pred))
         # Check that the result matches the effects from the last run
-        new_pos.sort()
-        new_neg.sort()
-        # print('Sorted positive effects: {}'.format(new_pos))
-        # print('Sorted negative effects: {}'.format(new_neg))
-        if len(self.positiveEffects) == 0:
-            self.positiveEffects = new_pos
-        elif new_pos != self.positiveEffects:
-            raise ValurError('Positive effects of action {} seem inconsistent! Are you using conditional effects?\nObserved: {}\nNew: {}'.format(self.name, self.positiveEffects, new_pos))
-        if len(self.negativeEffects) == 0:
-            self.negativeEffects = new_neg
-        elif new_neg != self.negativeEffects:
-            raise ValurError('Negative effects of action {} seem inconsistent! Are you using conditional effects?\nObserved: {}\nNew: {}'.format(self.name, self.negativeEffects, new_neg))
-        # print()
+        # new_pos.sort()
+        # new_neg.sort()
+        print('Sorted positive effects: {}'.format(new_pos))
+        print('Sorted negative effects: {}'.format(new_neg))
+        # if len(self.positiveEffects) == 0:
+        #     self.positiveEffects = new_pos
+        # elif new_pos != self.positiveEffects:
+
+        needsDoubleChecking = False
+        # Find differences between new_pos and (old) self.positiveEffects
+        # For each effect in new_pos but not in self.positive_effects:
+        for novelEffect in new_pos - self.positiveEffects:
+            print('Novel positive effect: {}'.format(novelEffect))
+            # These effects were observed for the first time just now.
+                # Add them to self.positiveEffects
+            self.positiveEffects.add(novelEffect)
+            # They should have been present in both the before and after states of previous invocations of this action.
+                # Double-check that... somehow.
+            needsDoubleChecking = True
+        # For each effect in self.positive_effects but not in new_pos:
+        for missingEffect in self.positiveEffects - new_pos:
+            print('Missing positive effect: {}'.format(missingEffect))
+            # These effects have been observed in the past, but did not manifest this time.
+            # They should be present in both the before and after states of this action.
+            # Check that they are present.
+            predicateName = missingEffect[0]
+            predicateParams = [reverseMap[p] for p in missingEffect[1:]]
+            groundedEffect = [predicateName] + predicateParams
+            if groundedEffect not in before or groundedEffect not in after:
+                raise ValueError('Spurious lack of positive effect discovered in action {} {}!\nBefore: {}\nMissing effect: {}\nAfter:  {}'.format(self.name, assignment, before, groundedEffect, after))
+            # raise ValueError('Positive effects of action {} seem inconsistent! Are you using conditional effects?\nObserved: {}\nNew:      {}'.format(self.name, self.positiveEffects, new_pos))
+
+        # if len(self.negativeEffects) == 0:
+        #     self.negativeEffects = new_neg
+        # elif new_neg != self.negativeEffects:
+
+        # Find differences between new_neg and (old) self.negativeEffects
+        # For each effect in new_neg but not in self.negative_effects:
+        for novelEffect in new_neg - self.negativeEffects:
+            print('Novel negative effect: {}'.format(novelEffect))
+            # These effects were observed for the first time just now.
+                # Add them to self.negativeEffects
+            self.negativeEffects.add(novelEffect)
+            # They should have been absent in both the before and after states of previous invocations of this action.
+                # Double-check that... somehow.
+            needsDoubleChecking = True
+        # For each effect in self.negative_effects but not in new_neg:
+        for missingEffect in self.negativeEffects - new_neg:
+            print('Missing negative effect: {}'.format(missingEffect))
+            # These effects have been observed in the past, but did not manifest this time.
+            # These predicates should be absent in both the before and after states of this action.
+            # Check that they are absent.
+            predicateName = missingEffect[0]
+            predicateParams = [reverseMap[p] for p in missingEffect[1:]]
+            groundedEffect = [predicateName] + predicateParams
+            if groundedEffect in before or groundedEffect in after:
+                raise ValueError('Spurious lack of negative effect discovered in action {} {}!\nBefore: {}\nMissing effect: {}\nAfter:  {}'.format(self.name, assignment, before, groundedEffect, after))
+            # raise ValueError('Negative effects of action {} seem inconsistent! Are you using conditional effects?\nObserved: {}\nNew:      {}'.format(self.name, self.negativeEffects, new_neg))
+        print()
+        return needsDoubleChecking
 
     def __str__(self):
         return '''Action Candidate Name: {}
