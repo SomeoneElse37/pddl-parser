@@ -109,7 +109,7 @@ class trajectory:
         for typ in self.types2objs.keys():
             container = 'object'
             for tclass in classList:
-                if typ in tclass:
+                if typ in tclass and typ != '_'.join(tclass):
                     container = '_'.join(tclass)
             self.typeclasses[typ] = container
 
@@ -145,10 +145,10 @@ class trajectory:
         fmtTypeclasses = ['{} - {}'.format(k, v) for k, v in self.typeclasses.items()]
         fmtPredicates = []
         for name, types in self.predicates.items():
-            fmtParams = []
+            fmtParams = [name]
             for i, typ in enumerate(types):
                 fmtParams.append('?{} - {}'.format(i, '_'.join(typ)))
-            fmtPredicates.append(' '.join(fmtParams))
+            fmtPredicates.append('({})'.format(' '.join(fmtParams)))
         fmtActions = [str(act) for act in self.actions.values()]
         return '''(define (domain reconstructed)
 (requirements :typing :negative-preconditions)
@@ -372,11 +372,11 @@ Negative effects: {}
 '''.format(self.name, self.types2pars, self.positivePreconditions, self.negativePreconditions, self.positiveEffects, self.negativeEffects)
 
     def __str__(self):
-        params = ['{} - {}'.format(par, typ) for par, typ in zip(self.parNames, self.parameterTypes)]
-        posiPrecons = [' '.join(pred) for pred in self.positivePreconditions]
-        negaPrecons = ['(not {})'.format(' '.join(pred)) for pred in self.negativePreconditions]
-        posEffects = [' '.join(pred) for pred in self.positiveEffects]
-        negEffects = ['(not {})'.format(' '.join(pred)) for pred in self.negativeEffects]
+        params = ['{} - {}'.format(par, '_'.join(typ)) for par, typ in zip(self.parNames, self.parameterTypes)]
+        posiPrecons = ['({})'.format(' '.join(pred)) for pred in self.positivePreconditions]
+        negaPrecons = ['(not ({}))'.format(' '.join(pred)) for pred in self.negativePreconditions]
+        posEffects = ['({})'.format(' '.join(pred)) for pred in self.positiveEffects]
+        negEffects = ['(not ({}))'.format(' '.join(pred)) for pred in self.negativeEffects]
         return '''(:action {}
 :parameters ({})
 :precondition (and {}
