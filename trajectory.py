@@ -79,7 +79,7 @@ class trajectory:
             act.prunePrecons(self.states[i], assignment)
             needsDoubleChecking |= act.updateEffects(self.states[i], assignment, self.states[i + 1])
         if needsDoubleChecking:
-            print('Double-checking action effects\n')
+            # print('Double-checking action effects\n')
             needsDoubleChecking = False
             for i, agmt in enumerate(assignments):
                 act = self.actions[agmt[0]]
@@ -87,7 +87,7 @@ class trajectory:
                 # assignedTypes = [self.objs2types[par] for par in assignment]
                 needsDoubleChecking |= act.updateEffects(self.states[i], assignment, self.states[i + 1])
             if needsDoubleChecking:
-                raise ValueError('Some actions still had unexpected effects during the second pass. If you see this message, please let me know. --SE')
+                raise ValueError("Some actions still had unexpected effects during the second pass. This shouldn't be possible. If you see this message, please let me know. --SE")
 
 
     def __init__(self, filename):
@@ -237,9 +237,9 @@ class actionCandidate:
         # Compute differences between before and after
         pos = [pred for pred in after if pred not in before]
         neg = [pred for pred in before if pred not in after]
-        print('Updating effects of {} {}'.format(self.name, assignment))
-        print('Added predicates: {}'.format(pos))
-        print('Removed predicates: {}'.format(neg))
+        # print('Updating effects of {} {}'.format(self.name, assignment))
+        # print('Added predicates: {}'.format(pos))
+        # print('Removed predicates: {}'.format(neg))
         # Check that the parameters of the predicates in the difference are a subset of the objects in assignment
         for pred in pos + neg:
             for param in pred[1:]:
@@ -251,7 +251,7 @@ class actionCandidate:
         reverseMap = dict(zip(self.parNames, assignment))
         new_pos = set()
         new_neg = set()
-        print('Assignment map: {}'.format(assignMap))
+        # print('Assignment map: {}'.format(assignMap))
         for pred in pos:
             new_pred = [pred[0]]
             new_pred.extend([assignMap[param] for param in pred[1:]])
@@ -263,8 +263,8 @@ class actionCandidate:
         # Check that the result matches the effects from the last run
         # new_pos.sort()
         # new_neg.sort()
-        print('Sorted positive effects: {}'.format(new_pos))
-        print('Sorted negative effects: {}'.format(new_neg))
+        # print('Sorted positive effects: {}'.format(new_pos))
+        # print('Sorted negative effects: {}'.format(new_neg))
         # if len(self.positiveEffects) == 0:
         #     self.positiveEffects = new_pos
         # elif new_pos != self.positiveEffects:
@@ -273,7 +273,7 @@ class actionCandidate:
         # Find differences between new_pos and (old) self.positiveEffects
         # For each effect in new_pos but not in self.positive_effects:
         for novelEffect in new_pos - self.positiveEffects:
-            print('Novel positive effect: {}'.format(novelEffect))
+            # print('Novel positive effect: {}'.format(novelEffect))
             # These effects were observed for the first time just now.
                 # Add them to self.positiveEffects
             self.positiveEffects.add(novelEffect)
@@ -282,7 +282,7 @@ class actionCandidate:
             needsDoubleChecking = True
         # For each effect in self.positive_effects but not in new_pos:
         for missingEffect in self.positiveEffects - new_pos:
-            print('Missing positive effect: {}'.format(missingEffect))
+            # print('Missing positive effect: {}'.format(missingEffect))
             # These effects have been observed in the past, but did not manifest this time.
             # They should be present in both the before and after states of this action.
             # Check that they are present.
@@ -300,7 +300,7 @@ class actionCandidate:
         # Find differences between new_neg and (old) self.negativeEffects
         # For each effect in new_neg but not in self.negative_effects:
         for novelEffect in new_neg - self.negativeEffects:
-            print('Novel negative effect: {}'.format(novelEffect))
+            # print('Novel negative effect: {}'.format(novelEffect))
             # These effects were observed for the first time just now.
                 # Add them to self.negativeEffects
             self.negativeEffects.add(novelEffect)
@@ -309,7 +309,7 @@ class actionCandidate:
             needsDoubleChecking = True
         # For each effect in self.negative_effects but not in new_neg:
         for missingEffect in self.negativeEffects - new_neg:
-            print('Missing negative effect: {}'.format(missingEffect))
+            # print('Missing negative effect: {}'.format(missingEffect))
             # These effects have been observed in the past, but did not manifest this time.
             # These predicates should be absent in both the before and after states of this action.
             # Check that they are absent.
@@ -319,7 +319,7 @@ class actionCandidate:
             if groundedEffect in before or groundedEffect in after:
                 raise ValueError('Spurious lack of negative effect discovered in action {} {}!\nBefore: {}\nMissing effect: {}\nAfter:  {}'.format(self.name, assignment, before, groundedEffect, after))
             # raise ValueError('Negative effects of action {} seem inconsistent! Are you using conditional effects?\nObserved: {}\nNew:      {}'.format(self.name, self.negativeEffects, new_neg))
-        print()
+        # print()
         return needsDoubleChecking
 
     def __str__(self):
