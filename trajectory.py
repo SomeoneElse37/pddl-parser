@@ -89,6 +89,29 @@ class trajectory:
             if needsDoubleChecking:
                 raise ValueError("Some actions still had unexpected effects during the second pass. This shouldn't be possible. If you see this message, please let me know. --SE")
 
+    def genTypeclasses(self):   #TODO Add code to deal with deeper hierarchies
+        classList = []
+        for typesOuter in self.predicates.values():
+            for types in typesOuter:
+                print(types)
+                sorTypes = list(sorted(types))
+                if sorTypes not in classList:
+                    classList.append(sorTypes)
+        for act in self.actions:
+            for types in self.actions[act].parameterTypes:
+                sorTypes = list(sorted(types))
+                if sorTypes not in classList:
+                    classList.append(sorTypes)
+        print(classList)
+        self.typeclasses = {}
+        for tclass in classList:
+            self.typeclasses['_'.join(tclass)] = 'object'
+        for typ in self.types2objs.keys():
+            container = 'object'
+            for tclass in classList:
+                if typ in tclass:
+                    container = '_'.join(tclass)
+            self.typeclasses[typ] = container
 
     def __init__(self, filename):
         self.parser = PDDL_Parser()
@@ -116,6 +139,23 @@ class trajectory:
         # print(self.actions[0])
         self.refineActions(self.tokens)
         pprint.pprint(self.actions)
+        self.genTypeclasses()
+
+    def __repr__(self):
+        fmtTypeclasses = ['{} - {}'.format(k, v) for k, v in self.typeclasses.items()]
+        fmtPredicates = []
+        for name, types in self.predicates.items():
+            fmtParams = []
+            for i, typ in enumerate(types):
+                fmtParams.append('?{} - {}'.format(i, '_'.join(typ)))
+            fmtPredicates.append(' '.join(fmtParams))
+        fmtActions = [str(act) for act in self.actions.values()]
+        return '''(define (domain reconstructed)
+(requirements :typing :negative-preconditions)
+(:types {})
+(:predicates {})
+{})
+'''.format(' '.join(fmtTypeclasses), ' '.join(fmtPredicates), ''.join(fmtActions))
 
 # Given a list of lists, returns every possible result of taking one element from each sublist.
 # Eg: explode([[1, 2], [3, 4]]) yields [1, 3], [1, 4], [2, 3], [2, 4]
@@ -150,7 +190,7 @@ class actionCandidate:
         self.types2pars = {}    # Map from types to the names of the action parameters names that could be that type
         for i, pType in enumerate(parTypes):
             self.parameterTypes.append([pType]) # Other observed types will be added later, during successive iterations of trajectory.parseActions
-            parName = '{}{}'.format(i, pType)   # Parameter name format is <parameter index><type of first object observed being passed to this parameter>
+            parName = '?{}{}'.format(i, pType)   # Parameter name format is '?<parameter index><type of first object observed being passed to this parameter>'
             if pType not in self.types2pars:
                 self.types2pars[pType] = []
             self.types2pars[pType].append(parName)
@@ -322,7 +362,7 @@ class actionCandidate:
         # print()
         return needsDoubleChecking
 
-    def __str__(self):
+    def __repr__(self):
         return '''Action Candidate Name: {}
 Parameters: {}
 Positive preconditions: {}
@@ -331,7 +371,19 @@ Positive effects: {}
 Negative effects: {}
 '''.format(self.name, self.types2pars, self.positivePreconditions, self.negativePreconditions, self.positiveEffects, self.negativeEffects)
 
-    __repr__ = __str__
+    def __str__(self):
+        params = ['{} - {}'.format(par, typ) for par, typ in zip(self.parNames, self.parameterTypes)]
+        posiPrecons = [' '.join(pred) for pred in self.positivePreconditions]
+        negaPrecons = ['(not {})'.format(' '.join(pred)) for pred in self.negativePreconditions]
+        posEffects = [' '.join(pred) for pred in self.positiveEffects]
+        negEffects = ['(not {})'.format(' '.join(pred)) for pred in self.negativeEffects]
+        return '''(:action {}
+:parameters ({})
+:precondition (and {}
+{})
+:effect (and {}
+{}))
+'''.format(self.name, ' '.join(params), ' '.join(posiPrecons), ' '.join(negaPrecons), ' '.join(posEffects), ' '.join(negEffects))
 
 
 
@@ -340,6 +392,10 @@ if __name__ == '__main__':
     import sys
     filename = sys.argv[1]
     traj = trajectory(filename)
-
+    if len(sys.argv) > 2:
+        fout = open(sys.argv[2], 'w')
+    else:
+        fout = sys.stdout
+    fout.write(str(traj))
 
 
