@@ -103,16 +103,29 @@ class Engine:
         # print(act.negative_preconditions)
         # print(self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions))
         if self.planner.applicable(self.state, act.positive_preconditions, act.negative_preconditions):
+            success = True
+            suffix = ''
+        else:
+            success = False
+            suffix = '-failed'
+        if success or self.verbose:
             # log.write(str(self.state) + '\n')
             # log.write(str(act))
-            act_str = '(:action ({}))'.format(' '.join([act.name, *act.parameters]))
-            self.history.append(self.state)
-            self.state = self.planner.apply(self.state, act.add_effects, act.del_effects)
-            # log.write(self.lispState() + '\n\n')
-            self.movelog.append('{}\n\n{}\n\n'.format(act_str, self.lispState()))
-            return True
-        else:
-            return False
+            print('Action: {} {}'.format(act.name, act.parameters))
+            try:
+                act_str = '(:action{} ({}))'.format(suffix, ' '.join([act.name, *act.parameters]))
+                if success:
+                    self.history.append(self.state)
+                    self.state = self.planner.apply(self.state, act.add_effects, act.del_effects)
+                # log.write(self.lispState() + '\n\n')
+                self.movelog.append('{}\n\n{}\n\n'.format(act_str, self.lispState()))
+            except TypeError:
+                # Tried to move or push a boulder off the grid or into a wall (in sokoban-sequential, those are the same thing).
+                # This can only be a failed action, but trying to log it crashes this script (hence this try-except block), and would cause problems for trajectory.py down the line.
+                # So, don't attempt to log this action.
+                # This might come back to bite me later, but I'll cross that bridge when I get there.
+                pass
+        return success
 
     def lookupAction(self, actName):
         for act in self.parser.actions:
@@ -138,13 +151,19 @@ class Engine:
         if key == 'u':
             if len(self.history) >= 1:
                 self.state = self.history.pop()
-                self.movelog.pop()
+                if self.verbose:
+                    self.movelog.append('(:undo)\n\n{}\n\n'.format(self.lispState()))
+                else:
+                    self.movelog.pop()
             return True
         elif key == 'r':
             self.state = self.parser.state
             # self.history.append(self.state)
             self.history = [self.state]
-            self.movelog = []
+            if self.verbose:
+                self.movelog.append('(:restart)\n\n{}\n\n'.format(self.lispState()))
+            else:
+                self.movelog = []
             return True
         elif key == 'w':
             direc = 'dir-up'
