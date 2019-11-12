@@ -37,7 +37,12 @@ import datetime
 
 class Engine:
 
-    def __init__(self, domain, problem, logfile='/dev/null'):
+    # Params:
+    #   domain: Name of domain file; should be 'soko3/soko3/pddl'
+    #   problem: Name of problem file encoding the level to be played, e.g. soko3/levelp3.pddl
+    #   logfile: Name of file the trajectory should be written to; defaults to /dev/null
+    #   verbose: If true, will write restarts, undoes, and failed moves to the trajectory file
+    def __init__(self, domain, problem, logfile='/dev/null', verbose=False):
         # Parser
         self.parser = PDDL_Parser()
         self.parser.parse_domain(domain)
@@ -51,6 +56,7 @@ class Engine:
         self.movelog = []
 
         self.logfile = logfile
+        self.verbose = verbose
 
         self.planner = Planner()
         # Do nothing
@@ -329,7 +335,11 @@ if __name__ == '__main__':
         logfile = sys.argv[3]
     except IndexError:
         logfile = '/dev/null'
-    engine = Engine(domain, problem, logfile)
+    if len(sys.argv) > 4 and sys.argv[4] == '--verbose':
+        verbose = True
+    else:
+        verbose = False
+    engine = Engine(domain, problem, logfile, verbose=verbose)
     engine.gameloop()
     print('Time: ' + str(time.time() - start_time) + 's')
     # if plan:

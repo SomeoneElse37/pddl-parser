@@ -113,7 +113,8 @@ class trajectory:
                     container = '_'.join(tclass)
             self.typeclasses[typ] = container
 
-    def __init__(self, filename):
+    def __init__(self, filename, domainName='reconstructed'):
+        self.domainName = domainName
         self.parser = PDDL_Parser()
         self.tokens = self.parser.scan_tokens(filename)
         pprint.pprint(self.tokens)
@@ -150,12 +151,12 @@ class trajectory:
                 fmtParams.append('?{} - {}'.format(i, '_'.join(typ)))
             fmtPredicates.append('({})'.format(' '.join(fmtParams)))
         fmtActions = [str(act) for act in self.actions.values()]
-        return '''(define (domain reconstructed)
+        return '''(define (domain {})
 (requirements :typing :negative-preconditions)
 (:types {})
 (:predicates {})
 {})
-'''.format(' '.join(fmtTypeclasses), ' '.join(fmtPredicates), ''.join(fmtActions))
+'''.format(self.domainName, ' '.join(fmtTypeclasses), ' '.join(fmtPredicates), ''.join(fmtActions))
 
 # Given a list of lists, returns every possible result of taking one element from each sublist.
 # Eg: explode([[1, 2], [3, 4]]) yields [1, 3], [1, 4], [2, 3], [2, 4]
@@ -391,7 +392,10 @@ Negative effects: {}
 if __name__ == '__main__':
     import sys
     filename = sys.argv[1]
-    traj = trajectory(filename)
+    if len(sys.argv) > 3:
+        traj = trajectory(filename, sys.argv[3])
+    else:
+        traj = trajectory(filename)
     if len(sys.argv) > 2:
         fout = open(sys.argv[2], 'w')
     else:
