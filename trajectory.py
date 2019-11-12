@@ -93,7 +93,7 @@ class trajectory:
         classList = []
         for typesOuter in self.predicates.values():
             for types in typesOuter:
-                print(types)
+                # print(types)
                 sorTypes = list(sorted(types))
                 if sorTypes not in classList:
                     classList.append(sorTypes)
@@ -102,7 +102,7 @@ class trajectory:
                 sorTypes = list(sorted(types))
                 if sorTypes not in classList:
                     classList.append(sorTypes)
-        print(classList)
+        # print(classList)
         self.typeclasses = {}
         for tclass in classList:
             self.typeclasses['_'.join(tclass)] = 'object'
@@ -152,7 +152,7 @@ class trajectory:
             fmtPredicates.append('({})'.format(' '.join(fmtParams)))
         fmtActions = [str(act) for act in self.actions.values()]
         return '''(define (domain {})
-(requirements :typing :negative-preconditions)
+(:requirements :typing :negative-preconditions)
 (:types {})
 (:predicates {})
 {})
