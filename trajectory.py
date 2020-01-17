@@ -65,7 +65,7 @@ class trajectory:
 
     def refineActions(self, tokens):
         assignments = [((n - 1) // 2 - 1, block[1]) for (n, block) in enumerate(tokens) if block[0] == ':action']
-        pprint.pprint(assignments)
+        # pprint.pprint(assignments)
         for i, agmt in assignments:
             assignedTypes = [self.objs2types[par] for par in agmt[1:]]
             self.actions[agmt[0]].updateParameterTypes(assignedTypes)
@@ -73,10 +73,10 @@ class trajectory:
             act.createPrecons(self)
         needsDoubleChecking = False
         for i, agmt in assignments:
-            print('State {}: {}'.format(i, self.states[i]))
-            print('Action {}: {}'.format(i, agmt))
-            print('State {}: {}'.format(i+1, self.states[i+1]))
-            print()
+            # print('State {}: {}'.format(i, self.states[i]))
+            # print('Action {}: {}'.format(i, agmt))
+            # print('State {}: {}'.format(i+1, self.states[i+1]))
+            # print()
             act = self.actions[agmt[0]]
             assignment = agmt[1:]
             # assignedTypes = [self.objs2types[par] for par in assignment]
