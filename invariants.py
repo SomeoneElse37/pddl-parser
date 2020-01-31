@@ -137,14 +137,67 @@ class invariants:
                             if ruleBroken:
                                 self.PRs.discard(ruleL)
         # Now, the things in self.PRs should only be the ones that are true for all actions
+        print()
         print('=== Primitive Rules ===')
         for rule in self.PRs:
             print()
             print(rule)
+            print(rule.matrix())
         # Now... I think I want to tackle constants next
+        print()
         print('=== Constants ===')
+        print()
         self.constants = set(traj.predicates.keys()).difference(self.mutablePredicates)
         print(self.constants)
+        # Next, sort through those primitive rules, and find the ones that add up to a proper invariant
+        print()
+        print('=== Invariants ===')
+        # OK, I've got my primitive rules, I've got my invariant data structure; how to get from one to the other?
+        # The only invariant operators I can get from the info I have are XOR and XNOR
+        # And those each require the same two predicates and the same two arguments in four separate primitive rules.
+        # So that's what I'll look for.
+        matchedPreds = []
+        self.invariantList = []
+        for p in self.PRs:
+            if p not in matchedPreds:
+                matches = [p]
+                for q in self.PRs:
+                    if q is not p and q not in matchedPreds:
+                        if p.matches(q):
+                            matches.append(q)
+                print()
+                if len(matches) == 4:
+                    print('Found tetra-match!')
+                    matchedPreds.extend(matches)
+                    first = matches[0]
+                    pname = first.pname
+                    matrix = ((False, False), (False, False))
+                    for m in matches:
+                        for n in matches:
+                            if n is not m:
+                                if m.equalsReversed(n):
+                                    tmp = m.matrix() if m.pname == pname else m.matrixTransposed()
+                                    matrix = matrixOr(matrix, tmp)
+                    inv = invariant(first.pname, first.parg, first.qname, first.qarg, matrix)
+                    self.invariantList.append(inv)
+                    for match in matches:
+                        print(match)
+                    for match in matches:
+                        print(match.matrix())
+                    print(inv)
+                else:
+                    print('Found set of {} matches'.format(len(matches)))
+                    for match in matches:
+                        print(match)
+                    for match in matches:
+                        print(match.matrix())
+
+def matrixOr(a, b):
+    c = a[0][0] or b[0][0]
+    d = a[0][1] or b[0][1]
+    e = a[1][0] or b[1][0]
+    f = a[1][1] or b[1][1]
+    return ((c, d), (e, f))
 
 class primitiveRule:
     # Encodes statements like this:
@@ -174,8 +227,116 @@ class primitiveRule:
                 and self.qname == other.qname
                 and self.qarg == other.qarg
                 and self.qadded == other.qadded)
+
     def __hash__(self):
         return hash((self.pname, self.parg, self.padded, self.qname, self.qarg, self.qadded))
+
+    # Returns true iff self and other apply to the same arguments of the same predicates
+    # Four primitive rules that mutually match by this function make an invariant
+    def matches(self, other):
+        return ((self.pname == other.pname and self.qname == other.qname
+            and self.parg == other.parg and self.qarg == other.qarg)
+            or (self.pname == other.qname and self.qname == other.pname
+            and self.parg == other.qarg and self.qarg == other.parg))
+
+    # Returns a pair of pairs of booleans; three False, one True; with the True representing the present/absent state of the two predicates
+    # after an action conforming to this primitive rule is triggered
+    # Format is the same as that used by invariant operators, as shown below
+    def matrix(self):
+        out = [[False, False], [False, False]]
+        a = 1 if self.padded else 0
+        b = 1 if self.qadded else 0
+        out[a][b] = True
+        return tuple(map(tuple, out))
+
+    def matrixTransposed(self):
+        out = [[False, False], [False, False]]
+        a = 1 if self.padded else 0
+        b = 1 if self.qadded else 0
+        out[b][a] = True
+        return tuple(map(tuple, out))
+
+    # Return true iff this rule's p fields equal the other's q fields, and vice versa, meaning they together describe an "always and only" relationship
+    def equalsReversed(self, other):
+        return (self.pname == other.qname
+                and self.parg == other.qarg
+                and self.padded == other.qadded
+                and self.qname == other.pname
+                and self.qarg == other.parg
+                and self.qadded == other.padded)
+
+
+# ops[0][0]: Both absent
+# ops[0][1]: Second present, first absent
+# ops[1][0]: First present, second absent
+# ops[1][1]: Both present
+
+# [[AA, AP],[PA, PP]]
+
+ops = {'NONE' : ((False, False), (False, False)),      #                       Neither predicate is allowed to be present or absent... which is impossible
+        'AND'  : ((False, False), (False, True )),     # AND operator    &&    Both predicates must be present at all times, for all applicable objects
+        'RNIM' : ((False, False), (True , False)),     # reversed NIMP   <-/-  First predicate must be present, second must be absent
+        'FST'  : ((False, False), (True , True )),     #                       First predicate must be present, disregard second
+        'NIMP' : ((False, True ), (False, False)),     # negated IMPLIES -/->  First predicate must be absent, second must be present
+        'SEC'  : ((False, True ), (False, True )),     #                       Second predicate must be present, disregard first
+        'XOR'  : ((False, True ), (True , False)),     # XOR operator    !=    Exactly one predicate must be present at all times, and not both
+        'OR'   : ((False, True ), (True , True )),     # OR operator     ||    At least one predicate must be present at all times (or both)
+        'NOR'  : ((True , False), (False, False)),     # NOR operator          Neither predicate is ever allowed to be present
+        'XNOR' : ((True , False), (False, True )),     # XNOR operator   ==    Either both predicates are mresent, or both are absent
+        'NSEC' : ((True , False), (True , False)),     #                       Second predicate must be absent; disregard first
+        'REVI' : ((True , False), (True , True )),     # reversed IMPLIES <--  Like IMPL, but with the arguments reversed. If the second is present, the first must also be present.
+        'NFST' : ((True , True ), (False, False)),     #                       First predicate must be absent, disregard second
+        'IMPL' : ((True , True ), (False, True )),     # IMPLIES operator -->  If the first rpedicate is present, then the second must also be present (but if the first is absent, anything goes)
+        'NAND' : ((True , True ), (True , False)),     # NAND operator         At least one predicate must always be absent (though the both can be at once)
+        'ALL'  : ((True , True ), (True , True ))}     #                       Predicates are entirely independent of each other
+
+rev_ops = {}
+for k, v in ops.items():
+    rev_ops[v] = k
+
+inv_fmt = {'NONE' : "{0}[{1}] and {2}[{3}] are PARADOXICAL (meaning they're not allowed to be present, and they're not allowed to be absent... if you ever see this message, something's gone wrong)",
+        'AND'  : '{0}[{1}] and {2}[{3}] are BOTH MANDATORY',
+        'RNIM' : '{0}[{1}] is MANDATORY; {2}[{3}] is FORBIDDEN',
+        'FST'  : '{0}[{1}] is MANDATORY; {2}[{3}] is IRRELEVANT',
+        'NIMP' : '{0}[{1}] is FORBIDDEN; {2}[{3}] is MANDATORY',
+        'SEC'  : '{0}[{1}] is IRRELEVANT; {2}[{3}] is MANDATORY',
+        'XOR'  : '{0}[{1}] and {2}[{3}] are MUTUALLY EXCLUSIVE',
+        'OR'   : 'AT LEAST ONE of {0}[{1}] and {2}[{3}] must be PRESENT',
+        'NOR'  : '{0}[{1}] and {2}[{3}] are BOTH FORBIDDEN',
+        'XNOR' : '{0}[{1}] and {2}[{3}] are EQUIVALENT',
+        'NSEC' : '{0}[{1}] is IRRELEVANT; {2}[{3}] is FORBIDDEN',
+        'REVI' : '{0}[{1}] IS IMPLIED BY {2}[{3}]',
+        'NFST' : '{0}[{1}] is FORBIDDEN; {2}[{3}] is IRRELEVANT',
+        'IMPL' : '{0}[{1}] IMPLIES {2}[{3}]',
+        'NAND' : 'AT LEAST ONE of {0}[{1}] and {2}[{3}] must be ABSENT',
+        'ALL'  : '{0}[{1}] and {2}[{3}] are INDEPENDENT'}
+
+class invariant:
+    # Not to be confused with the invariants class (note the plural), which analyzes invariants.
+    # This class represents a single invariant.
+    # Something like "any object of this type always has exactly one of these two predicates"
+    # More generally, this class encodes what combinations of present and absent are permitted for two predicates attached to the same object.
+
+    def __init__(self, pname, parg, qname, qarg, op):
+        self.pname = pname
+        self.qname = qname
+        self.parg = parg
+        self.qarg = qarg
+        if op in ops:
+            self.op_str = op
+            self.op_tuple = ops[op]
+        else:
+            self.op_tuple = op
+            self.op_str = rev_ops[op]
+
+    # Apply this invariant's operator to two booleans
+    def apply(self, p, q):
+        a = 1 if p else 0
+        b = 1 if q else 0
+        return self.op_tuple[a][b]
+
+    def __str__(self):
+        return inv_fmt[self.op_str].format(self.pname, self.parg, self.qname, self.qarg)
 
 # Main
 if __name__ == '__main__':
