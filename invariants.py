@@ -86,6 +86,8 @@
 # I think that's about as far as I can get with this for now. I'll imlpement all that, then run it a few times and see what comes out.
 # That'll help inform where I need to make improvements.
 
+import pprint
+
 def flattenEffects(act):
     for pos in act.positiveEffects:
         yield (pos, True)
@@ -149,6 +151,52 @@ class invariants:
         print()
         self.constants = set(traj.predicates.keys()).difference(self.mutablePredicates)
         print(self.constants)
+        # Determine what invariant holds for each pair of constants
+        initialState = traj.states[0]
+        initialGroundedConstants = set()
+        initialGroundedVariables = set()
+        for pred in initialState:
+            if pred[0] in self.constants:
+                initialGroundedConstants.add(tuple(pred))
+            else:
+                initialGroundedVariables.add(tuple(pred))
+        print('\nGrounded Constants:\n')
+        pprint.pprint(initialGroundedConstants)
+        print('\nGrounded Variables:\n')
+        pprint.pprint(initialGroundedVariables)
+        # For each constant
+        # consideredConstants = self.constants.copy()
+        # for p in self.constants:
+        #     consideredConstants.remove(p)
+        #     # For each other constant in that set listed after it
+        #     for q in consideredConstants:
+        #         print(p, q)
+        #         # For each argument of the first constant
+        #         for pi, parg in enumerate(traj.predicates[p]):
+        #             # For each argument of the second
+        #             for qi, qarg in enumerate(traj.predicates[q]):
+        #                 print(parg, pi, ', ', qarg, qi)
+        #                 # If the arguments have the same type list
+        #                 if parg == qarg:
+        #                     print(parg)
+        #                     # For each object of any of those types
+        #                     mat = ((False, False), (False, False))
+        #                     for typ in parg:
+        #                         for obj in traj.types2objs[typ]:
+        #                             print(obj)
+        #                             # Determine if the object has the first constant
+        #                             hasP = any([pred[0] == p and pred[pi+1] == obj for pred in initialGroundedConstants])
+        #                             # Determine if the object has the second constant
+        #                             hasQ = any([pred[0] == q and pred[qi+1] == obj for pred in initialGroundedConstants])
+        #                             # Note whether the first and second constants are present on it in the initial state in the form of a matrix
+        #                             mat = matrixOr(mat, genSingletonMat(hasP, hasQ))
+        #                     # OR all those matrices together
+        #                     print(mat)
+        #                     # Record an invariant using the OR'd matrix
+        #                     print(invariant(p, pi, q, qi, mat))
+        self.initialStateAnalysis = analyzeState(initialState, set(traj.predicates.keys()), traj)
+
+
         # Next, sort through those primitive rules, and find the ones that add up to a proper invariant
         print()
         print('=== Invariants ===')
@@ -157,7 +205,7 @@ class invariants:
         # And those each require the same two predicates and the same two arguments in four separate primitive rules.
         # So that's what I'll look for.
         matchedPreds = []
-        self.invariantList = []
+        self.actionInvariants = []
         for p in self.PRs:
             if p not in matchedPreds:
                 matches = [p]
@@ -179,7 +227,7 @@ class invariants:
                                     tmp = m.matrix() if m.pname == pname else m.matrixTransposed()
                                     matrix = matrixOr(matrix, tmp)
                     inv = invariant(first.pname, first.parg, first.qname, first.qarg, matrix)
-                    self.invariantList.append(inv)
+                    self.actionInvariants.append(inv)
                     for match in matches:
                         print(match)
                     for match in matches:
@@ -191,6 +239,60 @@ class invariants:
                         print(match)
                     for match in matches:
                         print(match.matrix())
+        # Compare the invariants divined from the action effects to those taken from the initial state
+        self.invariantList = []
+        for actInv in self.actionInvariants:
+            for stateInv in self.initialStateAnalysis:
+                modifiedStateInv = actInv.match(stateInv)
+                if modifiedStateInv is not None:
+                    print()
+                    print('From action analysis: ', actInv)
+                    print('From initial state analysis: ', modifiedStateInv)
+                    inv = invariant(actInv.pname, actInv.parg, actInv.qname, actInv.qarg, matrixOr(actInv.op_tuple, modifiedStateInv.op_tuple))
+                    print('Recording: ', inv)
+                    self.invariantList.append(inv)
+        # Filter the invariants from the initial state analysis for those that only describe constants
+        for stateInv in self.initialStateAnalysis:
+            if stateInv.pname in self.constants and stateInv.qname in self.constants:
+                self.invariantList.append(stateInv)
+        pprint.pprint(self.invariantList)
+
+def analyzeState(state, preds, traj):
+    out = []
+    consideredPreds = preds.copy()
+    for p in preds:
+        consideredPreds.remove(p)
+        # For each other constant in that set listed after it
+        for q in consideredPreds:
+            print(p, q)
+            # For each argument of the first constant
+            for pi, parg in enumerate(traj.predicates[p]):
+                # For each argument of the second
+                for qi, qarg in enumerate(traj.predicates[q]):
+                    print(parg, pi, ', ', qarg, qi)
+                    # If the arguments have the same type list
+                    if parg == qarg:
+                        print(parg)
+                        # For each object of any of those types
+                        mat = ((False, False), (False, False))
+                        for typ in parg:
+                            for obj in traj.types2objs[typ]:
+                                # Determine if the object has the first constant
+                                hasP = any([pred[0] == p and pred[pi+1] == obj for pred in state])
+                                # Determine if the object has the second constant
+                                hasQ = any([pred[0] == q and pred[qi+1] == obj for pred in state])
+                                # Note whether the first and second constants are present on it in the initial state in the form of a matrix
+                                newMat = genSingletonMat(hasP, hasQ)
+                                mat = matrixOr(mat, newMat)
+                                print(obj, hasP, hasQ)
+                        # OR all those matrices together
+                        print(mat)
+                        # Record an invariant using the OR'd matrix
+                        inv = invariant(p, pi, q, qi, mat)
+                        print(inv)
+                        out.append(inv)
+    return out
+
 
 def matrixOr(a, b):
     c = a[0][0] or b[0][0]
@@ -198,6 +300,20 @@ def matrixOr(a, b):
     e = a[1][0] or b[1][0]
     f = a[1][1] or b[1][1]
     return ((c, d), (e, f))
+
+def matrixTranspose(a):
+    c = a[0][0]
+    d = a[1][0]
+    e = a[0][1]
+    f = a[1][1]
+    return ((c, d), (e, f))
+
+def genSingletonMat(a, b):
+    out = [[False, False], [False, False]]
+    a = 1 if a else 0
+    b = 1 if b else 0
+    out[a][b] = True
+    return tuple(map(tuple, out))
 
 class primitiveRule:
     # Encodes statements like this:
@@ -335,8 +451,24 @@ class invariant:
         b = 1 if q else 0
         return self.op_tuple[a][b]
 
+    def match(self, other):
+        if (self.pname == other.pname
+                and self.parg == other.parg
+                and self.qname == other.qname
+                and self.qarg == other.qarg):
+            return other
+        elif (self.pname == other.qname
+                and self.parg == other.qarg
+                and self.qname == other.pname
+                and self.qarg == other.parg):
+            return invariant(other.qname, other.qarg, other.pname, other.parg, matrixTranspose(other.op_tuple))
+        else:
+            return None
+
     def __str__(self):
         return inv_fmt[self.op_str].format(self.pname, self.parg, self.qname, self.qarg)
+
+    __repr__ = __str__
 
 # Main
 if __name__ == '__main__':
