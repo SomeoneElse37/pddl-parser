@@ -132,6 +132,7 @@ class trajectoryRevised(trajectory.trajectory):
             print('Possible Absent  Positive Preconditions: {}'.format(PCB))
             print('Possible Present Negative Preconditions: {}'.format(BNC))
             print()
+        self.ambiguities = []
         for name, act in self.actions.items():
             for pos, neg in act.counterexamples:
                 if len(pos) == 0 and len(neg) == 1:
@@ -149,6 +150,9 @@ class trajectoryRevised(trajectory.trajectory):
                         negCan = neg.difference(act.defNegPrecons)
                                                 # at least one of those counterexamples must be a precondition, but we don't know which
                         print('Warning: Not enough information to determine if {} failed due to lack of {} or presence of {}!'.format(name, posCan, negCan))
+                        ambig = (name, posCan, negCan)
+                        if ambig not in self.ambiguities:
+                            self.ambiguities.append(ambig)
         print()
 
 

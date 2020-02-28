@@ -255,6 +255,7 @@ class invariants:
         for stateInv in self.initialStateAnalysis:
             if stateInv.pname in self.constants and stateInv.qname in self.constants:
                 self.invariantList.append(stateInv)
+        print('\n=========== Got The Invariants ==============\n')
         pprint.pprint(self.invariantList)
 
 def analyzeState(state, preds, traj):
