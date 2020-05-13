@@ -141,11 +141,11 @@ class trajectory3(trajectory2.trajectoryRevised):
                                             toAdd.add(candidates[i])
                                             toAdd.add(candidates[j])
                                         elif invariant.op_str in {'FST', 'NFST'}:
-                                            print('    Confirming first precondition candidate')
-                                            toAdd.add(candidates[i])
-                                        elif invariant.op_str in {'SEC', 'NSEC'}:
                                             print('    Confirming second precondition candidate')
                                             toAdd.add(candidates[j])
+                                        elif invariant.op_str in {'SEC', 'NSEC'}:
+                                            print('    Confirming first precondition candidate')
+                                            toAdd.add(candidates[i])
                                         elif invariant.op_str in {'NONE', 'AND', 'RNIM', 'NIMP', 'NOR'}:
                                             print('    Before-state appears to break invariant; this is probably an error')
                                         elif invariant.op_str in {'OR', 'REVI', 'IMPL', 'NAND', 'ALL'}:
